@@ -67,11 +67,10 @@ button_width = 200
 button_height = 50
 button_gap = 10
 
-# Create Throw button
+# Throw button
 throw_button_x = (screen_width - button_width) // 2
 throw_button_y = screen_height - (2 * button_height) - button_gap - 30
-# throw_button = Button(throw_button_x, throw_button_y, button_width, button_height, "Throw", button_color=(0, 128, 0), round_button=True)
-# throw_button = Button(450, 600, 100, 100, "Throw", button_color=(0, 100, 0), round_button=True)
+
 throw_button = Button(450, 600, 100, 100, "Throw", button_color=(101, 67, 33), round_button=True)
 
 
@@ -132,7 +131,7 @@ def get_radial_section(x, y, board_x, board_y, board_width, board_height):
     rel_y = y - (board_y + board_height // 2)
 
     angle = math.degrees(math.atan2(rel_y, rel_x))
-    angle = (angle + 360) % 360  # Ensure angle is between 0 and 360
+    angle = (angle + 360) % 360  # Angle is between 0 and 360
 
     section = (angle // 18) + 1
     return int(section)
@@ -185,14 +184,14 @@ def draw_score(screen, score, x, y, font_size=24, color=(0, 0, 255)):
 
 
 
-# Add draw_game_over function to display "Game Over" on the screen
+# draw_game_over function to display "Game Over" on the screen
 def draw_game_over(screen, x, y, font_size=48, color=(255, 0, 0)):
     font = pygame.font.Font(None, font_size)
     text_surface = font.render("Game Over", True, color)
     text_rect = text_surface.get_rect(center=(x, y))
     screen.blit(text_surface, text_rect)
 
-# Add draw_throws function to display throw count on the screen
+# draw_throws function to display throw count on the screen
 def draw_throws(screen, throws, x, y, font_size=24, color=(0, 0, 255)):
     font = pygame.font.Font(None, font_size)
     text_surface = font.render("Throws: " + str(throws), True, color)
@@ -203,7 +202,7 @@ darts = []
 throw_count = 0
 current_score = 0
 
-# Add draw_dart_count function to display dart count on the screen
+# draw_dart_count function to display dart count on the screen
 def draw_dart_count(screen, dart_count, x, y, font_size=24, color=(0, 0, 255)):
     font = pygame.font.Font(None, font_size)
     text_surface = font.render("Darts: " + str(dart_count), True, color)
@@ -221,19 +220,19 @@ games_played = 0
 max_games = 3
 remaining_games = max_games - games_played
 
-# Create Play Again button
+# Play Again button
 play_again_button_x = (screen_width - button_width) // 2
 play_again_button_y = throw_button_y + button_height + button_gap
 play_again_button = Button(play_again_button_x, play_again_button_y, button_width, button_height, "Play Again", button_color=(0, 128, 0))
-# play_again_button = Button(400, 700, 120, 40, "Play Again", button_color=(0, 100, 0))
+
 
 
 def draw_remaining_games(screen, remaining_games, x, y):
-    font = pygame.font.Font(None, 24)  # Change font size to 24
-    text = font.render(f"Games Remaining: {remaining_games}", 1, (0, 0, 255))  # Change color to (0, 0, 255)
+    font = pygame.font.Font(None, 24) 
+    text = font.render(f"Games Remaining: {remaining_games}", 1, (0, 0, 255))
     screen.blit(text, (x, y))
 
-# Modify the main loop
+# Main loop
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -273,7 +272,7 @@ while True:
                 score = dart.update(gravity, 1000, 600, dart_width, dart_height, dartboard_x, dartboard_y, dartboard_width, dartboard_height)
                 if score is not None:
                     current_score += score
-                    if current_score > highest_score:  # Add this check to update the highest score after each throw
+                    if current_score > highest_score: 
                         highest_score = current_score
 
 
@@ -284,13 +283,12 @@ while True:
 
     if throw_count == 5 and games_played == max_games:
         game_over = True
-        # pygame.time.delay(10000)  # Wait for 2 seconds
         draw_game_over(screen, 500, 300)
 
         if current_score > highest_score:
             highest_score = current_score
 
-    elif throw_count == 5:  # Add this condition to update the highest score at the end of each game
+    elif throw_count == 5:
         if current_score > highest_score:
             highest_score = current_score
 

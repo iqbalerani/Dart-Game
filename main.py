@@ -1,10 +1,15 @@
 import pygame
-import sys
 import math
 import random
+import sys
 
 pygame.init()
-screen = pygame.display.set_mode((1000, 600))
+
+# Screen dimensions
+screen_width = 1000
+screen_height = 800
+
+screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Dart Game")
 clock = pygame.time.Clock()
 
@@ -28,71 +33,60 @@ except FileNotFoundError:
     sys.exit()
 
 class Button:
-    def __init__(self, x, y, width, height, text, color, font_size):
+    def __init__(self, x, y, width, height, text, button_color=(0, 0, 0), text_color=(255, 255, 255), font_size=22, round_button=False):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.text = text
-        self.color = color
+        self.button_color = button_color
+        self.text_color = text_color
         self.font = pygame.font.Font(None, font_size)
+        self.round_button = round_button
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
-        text_surface = self.font.render(self.text, True, (0, 0, 0))
-        text_rect = text_surface.get_rect(center=(self.x + self.width // 2, self.y + self.height // 2))
-        screen.blit(text_surface, text_rect)
+        if self.round_button:
+            pygame.draw.circle(screen, self.button_color, (self.x + self.width // 2, self.y + self.height // 2), self.width // 2)
+        else:
+            pygame.draw.rect(screen, self.button_color, (self.x, self.y, self.width, self.height))
 
-    def is_clicked(self, mouse_x, mouse_y):
-        return self.x <= mouse_x <= self.x + self.width and self.y <= mouse_y <= self.y + self.height
+        text = self.font.render(self.text, True, self.text_color)
+        text_rect = text.get_rect(center=(self.x + self.width // 2, self.y + self.height // 2))
+        screen.blit(text, text_rect)
+
+    def is_clicked(self, x, y):
+        if self.round_button:
+            distance = math.sqrt((x - (self.x + self.width // 2)) ** 2 + (y - (self.y + self.height // 2)) ** 2)
+            return distance <= self.width // 2
+        else:
+            return self.x <= x <= self.x + self.width and self.y <= y <= self.y + self.height
 
 
-throw_button = Button(350, 550, 100, 40, "Throw", (0, 128, 0), 24)
+# Button dimensions
+button_width = 200
+button_height = 50
+button_gap = 10
+
+# Create Throw button
+throw_button_x = (screen_width - button_width) // 2
+throw_button_y = screen_height - (2 * button_height) - button_gap - 30
+# throw_button = Button(throw_button_x, throw_button_y, button_width, button_height, "Throw", button_color=(0, 128, 0), round_button=True)
+# throw_button = Button(450, 600, 100, 100, "Throw", button_color=(0, 100, 0), round_button=True)
+throw_button = Button(450, 600, 100, 100, "Throw", button_color=(101, 67, 33), round_button=True)
+
+
 
 class Dart:
-    def __init__(self, x, y):
+    def __init__(self, x, y, dart_image):
         self.x = x
         self.y = y
-        self.image = dart
+        self.dart_image = dart_image
         self.velocity_x = 0
         self.velocity_y = 0
         self.is_flying = False
 
-    # def update(self, gravity, screen_width, screen_height, dart_width, dart_height):
-    #     if self.is_flying:
-    #         # Decrease velocity as dart approaches the center of the screen
-    #         if self.x > (screen_width // 2) - (dart_width // 2) - 50:
-    #             self.velocity_x *= 0.98
-    #             self.velocity_y *= 0.98
-
-    #         self.x += self.velocity_x
-    #         self.y += self.velocity_y
-
-    #         # Stop the dart when it reaches its target
-    #         if abs(self.x - self.target_x) < 2:
-    #             self.is_flying = False
-    #             score = calculate_score(self.x, self.y, board_x, board_y, board_width, board_height)
-    #             print("Score:", score)
-
-    # def update(self, gravity, screen_width, screen_height, dart_width, dart_height, board_x, board_y, board_width, board_height):
-    #     if self.is_flying:
-    #         # Decrease velocity as dart approaches the center of the screen
-    #         if self.x > (screen_width // 2) - (dart_width // 2) - 50:
-    #             self.velocity_x *= 0.98
-    #             self.velocity_y *= 0.98
-
-    #         self.x += self.velocity_x
-    #         self.y += self.velocity_y
-
-    #         # Stop the dart when it reaches its target
-    #         if abs(self.x - self.target_x) < 2:
-    #             self.is_flying = False
-    #             score = calculate_score(self.x, self.y, board_x, board_y, board_width, board_height)
-    #             print("Score:", score)
-
     def update(self, gravity, screen_width, screen_height, dart_width, dart_height, board_x, board_y, board_width, board_height):
         if self.is_flying:
-            # Decrease velocity as dart approaches the center of the screen
             if self.x > (screen_width // 2) - (dart_width // 2) - 50:
                 self.velocity_x *= 0.98
                 self.velocity_y *= 0.98
@@ -100,7 +94,6 @@ class Dart:
             self.x += self.velocity_x
             self.y += self.velocity_y
 
-            # Stop the dart when it reaches its target
             if abs(self.x - self.target_x) < 2:
                 self.is_flying = False
                 score = calculate_score(self.x, self.y, board_x, board_y, board_width, board_height)
@@ -108,15 +101,12 @@ class Dart:
                 return score
         return None
 
-
-    
     def reset(self):
         self.x = 1000 - dart_width
         self.y = 600 - dart_height
         self.velocity_x = 0
         self.velocity_y = 0
         self.is_flying = False
-
 
     def throw(self, throw_speed, board_x, board_y, board_width, board_height):
         self.is_flying = True
@@ -136,10 +126,6 @@ class Dart:
 throw_speed = 15
 gravity = 0.2
 
-
-throw_button = Button(350, 550, 100, 40, "Throw", (0, 128, 0), 24)
-
-player_dart = Dart(1000 - dart_width, 600 - dart_height)
 
 def get_radial_section(x, y, board_x, board_y, board_width, board_height):
     rel_x = x - (board_x + board_width // 2)
@@ -175,12 +161,18 @@ def calculate_score(x, y, board_x, board_y, board_width, board_height):
     score = radial_section * multiplier
     return score
 
+highest_score = 0
+
+def draw_highest_score(screen, score, x, y, font_size=24, color=(0, 0, 255)):
+    font = pygame.font.Font(None, font_size)
+    text_surface = font.render("Highest Score: " + str(score), True, color)
+    screen.blit(text_surface, (x, y))
+
 
 # Position of dartboard
 dartboard_x = (1000 - dartboard_width) // 2
 dartboard_y = (600 - dartboard_height) // 2
 
-reset_button = Button(500, 550, 100, 40, "Reset", (255, 0, 0), 24)
 
 game_started = False
 
@@ -191,10 +183,7 @@ def draw_score(screen, score, x, y, font_size=24, color=(0, 0, 255)):
     text_surface = font.render("Score: " + str(score), True, color)
     screen.blit(text_surface, (x, y))
 
-# Initialize darts list, throw_count, and current_score outside the main loop
-darts = []
-throw_count = 0
-current_score = 0
+
 
 # Add draw_game_over function to display "Game Over" on the screen
 def draw_game_over(screen, x, y, font_size=48, color=(255, 0, 0)):
@@ -209,51 +198,107 @@ def draw_throws(screen, throws, x, y, font_size=24, color=(0, 0, 255)):
     text_surface = font.render("Throws: " + str(throws), True, color)
     screen.blit(text_surface, (x, y))
 
+# Initialize darts list, throw_count, and current_score outside the main loop
+darts = []
+throw_count = 0
+current_score = 0
+
+# Add draw_dart_count function to display dart count on the screen
+def draw_dart_count(screen, dart_count, x, y, font_size=24, color=(0, 0, 255)):
+    font = pygame.font.Font(None, font_size)
+    text_surface = font.render("Darts: " + str(dart_count), True, color)
+    screen.blit(text_surface, (x, y))
+
+# Initialize darts list and dart_positions outside the main loop
+darts = [Dart(1000 - dart_width, 600 - dart_height * (i + 1), dart) for i in range(5)]
+dart_positions = [(1000 - dart_width, 600 - dart_height * (i + 1)) for i in range(5)]
+throw_count = 0
+current_score = 0
+game_over = False
+
+# Initialize variables
+games_played = 0
+max_games = 3
+remaining_games = max_games - games_played
+
+# Create Play Again button
+play_again_button_x = (screen_width - button_width) // 2
+play_again_button_y = throw_button_y + button_height + button_gap
+play_again_button = Button(play_again_button_x, play_again_button_y, button_width, button_height, "Play Again", button_color=(0, 128, 0))
+# play_again_button = Button(400, 700, 120, 40, "Play Again", button_color=(0, 100, 0))
+
+
+def draw_remaining_games(screen, remaining_games, x, y):
+    font = pygame.font.Font(None, 24)  # Change font size to 24
+    text = font.render(f"Games Remaining: {remaining_games}", 1, (0, 0, 255))  # Change color to (0, 0, 255)
+    screen.blit(text, (x, y))
+
+# Modify the main loop
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
             mouse_x, mouse_y = pygame.mouse.get_pos()
-            if throw_button.is_clicked(mouse_x, mouse_y) and not any(dart.is_flying for dart in darts):
-                if throw_count < 5:
-                    game_started = True
-                    throw_count += 1
-                    new_dart = Dart(1000 - dart_width, 600 - dart_height)
-                    new_dart.throw(throw_speed, dartboard_x, dartboard_y, dartboard_width, dartboard_height)
-                    darts.append(new_dart)
+            if throw_button.is_clicked(mouse_x, mouse_y) and throw_count < 5:
+                game_started = True
+                darts[throw_count].throw(throw_speed, dartboard_x, dartboard_y, dartboard_width, dartboard_height)
+                throw_count += 1
 
-            if reset_button.is_clicked(mouse_x, mouse_y):
+            if play_again_button.is_clicked(mouse_x, mouse_y) and games_played < max_games:
                 game_started = False
-                darts.clear()
+                for dart in darts:
+                    dart.reset()
                 throw_count = 0
-                current_score = 0
+                current_score = 0  # Reset current_score to 0 when the "Play Again" button is clicked
+                game_over = False
+                games_played += 1
+                remaining_games = max_games - games_played
 
     screen.fill((255, 255, 255))
-    draw_score(screen, current_score, 10, 10)  # Draw the score at the left corner
+    draw_score(screen, current_score, 10, 10)
     draw_throws(screen, throw_count, 10, 40)
+    draw_highest_score(screen, highest_score, 10, 70)
+    draw_remaining_games(screen, remaining_games, 10, 100)
 
     screen.blit(dartboard, (dartboard_x, dartboard_y))
 
-    # Update and draw each dart in the darts list
-    for dart in darts:
-        score = dart.update(gravity, 1000, 600, dart_width, dart_height, dartboard_x, dartboard_y, dartboard_width, dartboard_height)
-        if score is not None:
-            current_score = score
-        screen.blit(dart.image, (dart.x, dart.y))  # Use the image attribute of the dart object
+    if game_started:
+        for i, dart in enumerate(darts):
+            if i >= throw_count:
+                screen.blit(dart.dart_image, dart_positions[i])
+            elif dart.is_flying:
+                score = dart.update(gravity, 1000, 600, dart_width, dart_height, dartboard_x, dartboard_y, dartboard_width, dartboard_height)
+                if score is not None:
+                    current_score += score
+                    if current_score > highest_score:  # Add this check to update the highest score after each throw
+                        highest_score = current_score
 
+
+            screen.blit(dart.dart_image, (dart.x, dart.y))
 
     throw_button.draw(screen)
-    reset_button.draw(screen)
+    play_again_button.draw(screen)
 
-    # Display "Game Over" when throw_count reaches 5
-    if throw_count == 5:
+    if throw_count == 5 and games_played == max_games:
+        game_over = True
+        # pygame.time.delay(10000)  # Wait for 2 seconds
         draw_game_over(screen, 500, 300)
+
+        if current_score > highest_score:
+            highest_score = current_score
+
+    elif throw_count == 5:  # Add this condition to update the highest score at the end of each game
+        if current_score > highest_score:
+            highest_score = current_score
 
     pygame.display.update()
     clock.tick(60)
+
+
+
 
 
 
